@@ -26,7 +26,8 @@ def main():
     classifier = tf.estimator.DNNClassifier(
         feature_columns=my_feature_columns,
         hidden_units=[10, 10],  # 定义每个隐层的单元数（2个隐层，每层10个隐藏单元）
-        n_classes=3)  # 类别数
+        n_classes=3,  # 类别数
+        model_dir="models/iris")  # 指定模型保存目录
 
     # 训练，传入数据train_x即为特征，train_y即为标签
     classifier.train(
