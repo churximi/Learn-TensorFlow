@@ -2,33 +2,22 @@
 # -*- coding: utf-8 -*-
 
 """
-功能：
-时间：
+功能：鸢尾花数据处理
+时间：2018年04月20日14:52:44
 """
 
 import pandas as pd
 import tensorflow as tf
 
-TRAIN_URL = "http://download.tensorflow.org/data/iris_training.csv"
-TEST_URL = "http://download.tensorflow.org/data/iris_test.csv"
-
-CSV_COLUMN_NAMES = ['SepalLength', 'SepalWidth',
-                    'PetalLength', 'PetalWidth', 'Species']
-SPECIES = ['Setosa', 'Versicolor', 'Virginica']
-
-
-def maybe_download():
-    train_path = tf.keras.utils.get_file(TRAIN_URL.split('/')[-1], TRAIN_URL)
-    test_path = tf.keras.utils.get_file(TEST_URL.split('/')[-1], TEST_URL)
-
-    return train_path, test_path
+CSV_COLUMN_NAMES = ['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth', 'Species']  # 列名
+SPECIES = ['Setosa', 'Versicolor', 'Virginica']  # 类别
+train_path = "data/iris_training.csv"
+test_path = "data/iris_test.csv"
 
 
 def load_data(y_name='Species'):
-    """Returns the iris dataset as (train_x, train_y), (test_x, test_y)."""
-    train_path, test_path = maybe_download()
-
-    train = pd.read_csv(train_path, names=CSV_COLUMN_NAMES, header=0)
+    """ 返回数据集格式 (train_x, train_y), (test_x, test_y)"""
+    train = pd.read_csv(train_path, names=CSV_COLUMN_NAMES, header=0)  # 指定列名
     train_x, train_y = train, train.pop(y_name)
 
     test = pd.read_csv(test_path, names=CSV_COLUMN_NAMES, header=0)
@@ -38,39 +27,34 @@ def load_data(y_name='Species'):
 
 
 def train_input_fn(features, labels, batch_size):
-    """An input function for training"""
-    # Convert the inputs to a Dataset.
-    dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
+    """ 训练用的输入函数"""
+    # 将输入转换为Dataset
+    dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))  # dict转换
 
     # Shuffle, repeat, and batch the examples.
     dataset = dataset.shuffle(1000).repeat().batch(batch_size)
 
-    # Return the dataset.
     return dataset
 
 
 def eval_input_fn(features, labels, batch_size):
-    """An input function for evaluation or prediction"""
-    features = dict(features)
-    if labels is None:
-        # No labels, use only features.
+    """ 评估/预测用的输入函数"""
+    features = dict(features)  # dict转换
+    if labels is None:  # 预测时没有label
         inputs = features
-    else:
+    else:  # test有label
         inputs = (features, labels)
 
-    # Convert the inputs to a Dataset.
     dataset = tf.data.Dataset.from_tensor_slices(inputs)
 
     # Batch the examples
     assert batch_size is not None, "batch_size must not be None"
-    dataset = dataset.batch(batch_size)
+    dataset = dataset.batch(batch_size)  # 评估/预测时不需要shuffle和repeat
 
-    # Return the dataset.
     return dataset
 
 
-# The remainder of this file contains a simple example of a csv parser,
-#     implemented using a the `Dataset` class.
+# 下面是一个csv解析器的示例,使用Dataset类实现
 
 # `tf.parse_csv` sets the types of the outputs to match the examples given in
 #     the `record_defaults` argument.
