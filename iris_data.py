@@ -62,23 +62,24 @@ CSV_TYPES = [[0.0], [0.0], [0.0], [0.0], [0]]
 
 
 def _parse_line(line):
+    # 解析单行，生成必要的 (features, label) 对
     # Decode the line into its fields
-    fields = tf.decode_csv(line, record_defaults=CSV_TYPES)
+    fields = tf.decode_csv(line, record_defaults=CSV_TYPES)  # 将单行解析为特征和标签两个部分
 
     # Pack the result into a dictionary
-    features = dict(zip(CSV_COLUMN_NAMES, fields))
+    features = dict(zip(CSV_COLUMN_NAMES, fields))  # 构建成字典，包含键
 
     # Separate the label from the features
-    label = features.pop('Species')
+    label = features.pop('Species')  # 从features中移出标签字段
 
     return features, label
 
 
 def csv_input_fn(csv_path, batch_size):
     # Create a dataset containing the text lines.
-    dataset = tf.data.TextLineDataset(csv_path).skip(1)
+    dataset = tf.data.TextLineDataset(csv_path).skip(1)  # 跳过第一行标题
 
-    # Parse each line.
+    # 对每一行进行解析
     dataset = dataset.map(_parse_line)
 
     # Shuffle, repeat, and batch the examples.
