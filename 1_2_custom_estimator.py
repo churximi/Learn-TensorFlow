@@ -14,19 +14,28 @@ train_steps = 1000
 
 
 def my_model(features, labels, mode, params):
-    """ 三层全连接DNN, 每层的dropout probability ：0.1 """
+    """
+    三层全连接DNN, 每层的dropout probability ：0.1
+    :param features: 输入函数特征
+    :param labels: 输入函数标签
+    :param mode: tf.estimator.ModeKeys的一个实例，表示调用程序是请求训练、预测还是评估
+    :param params: 参数
+    :return:
+    """
 
+    # 设计网络层
     net = tf.feature_column.input_layer(features, params['feature_columns'])  # 输入层，输入数据，feature_columns
 
     for units in params['hidden_units']:  # 两个隐层
         net = tf.layers.dense(net, units=units, activation=tf.nn.relu)  # 单元数，激活函数
 
     # 计算 logits
-    logits = tf.layers.dense(net, units=params['n_classes'], activation=None)  # 输出层
+    logits = tf.layers.dense(net, units=params['n_classes'], activation=None)  # 输出层，不使用激活函数
 
     # 最大预测值所在的位置，这里即为类别编号
     predicted_classes = tf.argmax(logits, 1)
 
+    # ----------------
     if mode == tf.estimator.ModeKeys.PREDICT:  # 如果是预测模式
         predictions = {
             'class_ids': predicted_classes[:, tf.newaxis],  # 增加一个维度，如[1, 2] 变为[[1], [2]]
@@ -38,16 +47,20 @@ def my_model(features, labels, mode, params):
     # 计算loss
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
 
-    # 评估
+    # 评估（定义指标）
     accuracy = tf.metrics.accuracy(labels=labels,
                                    predictions=predicted_classes,
                                    name='acc_op')
+
+    # 创建包含指标的字典
     metrics = {'accuracy': accuracy}
     tf.summary.scalar('accuracy', accuracy[1])
 
+    # ----------------
     if mode == tf.estimator.ModeKeys.EVAL:  # 如果是评估
         return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
 
+    # ----------------
     # 否则是训练
     assert mode == tf.estimator.ModeKeys.TRAIN
 
@@ -74,9 +87,9 @@ def main():
             'n_classes': 3,
         })
 
-    # 训练模型
+    # 训练模型，调用train()方法时，Estimator 框架会调用模型函数并将 mode 设为 ModeKeys.TRAIN
     classifier.train(
-        input_fn=lambda: train_input_fn(train_x, train_y, batch_size),
+        input_fn=lambda: train_input_fn(train_x, train_y, batch_size),  # 输入函数
         steps=train_steps)
 
     # 评估模型
