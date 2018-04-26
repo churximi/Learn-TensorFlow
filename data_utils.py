@@ -9,6 +9,8 @@
 import os
 import tensorflow as tf
 import pandas as pd
+import re
+import json
 
 
 def download_data():
@@ -47,6 +49,31 @@ def data_transfer(data_path):
     # features, label = tfe.Iterator(dataset).next()  # 查看单个数据
     return dataset
 
+
+def aclImdb_data_transfer():
+    record = []
+
+    train_pos = "/Users/simon/Mycodes/Learn-TensorFlow/data/aclImdb/test/pos"
+    out = open("data/aclImdb_test_pos.json", "w+")
+
+    pat = re.compile("(.*?)_(.*?)\.txt")
+    for file_path in os.listdir(train_pos):
+        data = dict()
+        with tf.gfile.GFile(os.path.join(train_pos, file_path), "r") as f:
+            finds = re.findall(pat, file_path)
+            data["ID"] = int(finds[0][0])
+            data["sentence"] = f.read()
+            data["polarity"] = "pos"
+            data["sentiment"] = finds[0][1]
+
+        record.append(data)
+    record.sort(key=lambda x: x["ID"], reverse=False)
+    print(len(record))
+    json.dump(record, out, ensure_ascii=False, indent=4)
+    out.close()
+
+
+aclImdb_data_transfer()
 
 if __name__ == "__main__":
     pass
