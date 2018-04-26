@@ -10,9 +10,7 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
-import re
 import seaborn as sns
 import json
 
@@ -51,6 +49,10 @@ def load_datasets():
     test_df = load_dataset(test_pos_path, test_neg_path)
 
     return train_df, test_df
+
+
+def get_predictions(estimator, input_fn):
+    return [x["class_ids"][0] for x in estimator.predict(input_fn=input_fn)]
 
 
 def main():
@@ -95,12 +97,7 @@ def main():
     print("Training set accuracy: {accuracy}".format(**train_eval_result))
     print("Test set accuracy: {accuracy}".format(**test_eval_result))
 
-    def get_predictions(estimator, input_fn):
-        return [x["class_ids"][0] for x in estimator.predict(input_fn=input_fn)]
-
-    LABELS = [
-        "negative", "positive"
-    ]
+    LABELS = ["negative", "positive"]
 
     # Create a confusion matrix on training data.
     with tf.Graph().as_default():
